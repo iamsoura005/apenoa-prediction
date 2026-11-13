@@ -1,3 +1,14 @@
+---
+title: ApneaSphere Biomedical AI Platform
+emoji: 🫁
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+---
+
 # ApneaSphere: Predictive Sleep Apnea AI Platform
 
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.6.0%2Bcu124-EE4C2C.svg?style=flat&logo=pytorch)](https://pytorch.org/)
