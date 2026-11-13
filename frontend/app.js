@@ -3,7 +3,9 @@
  * High-performance clinical PPG visualizer, telemetry client, and persistent record manager.
  */
 
-const API_BASE = window.API_BASE_URL || localStorage.getItem("APNEA_API_URL") || "";
+const API_BASE = window.API_BASE_URL 
+  || localStorage.getItem("APNEA_API_URL") 
+  || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "" : "https://apneasphere-api.onrender.com");
 
 let ppgChartInstance = null;
 let currentSignalData = [];
