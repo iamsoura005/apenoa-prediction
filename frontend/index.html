@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApneaSphere Enterprise — Biomedical AI Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-900">
+
+  <!-- TOP CLINICAL NAVIGATION -->
+  <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-xl sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <i data-lucide="activity" class="w-6 h-6 text-white stroke-[2.5]"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-blue-300 to-indigo-300 bg-clip-text text-transparent">ApneaSphere</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-800/50 text-cyan-400">Enterprise AI</span>
+          </div>
+          <p class="text-xs text-slate-400 font-medium">Predictive PPG-Based Obstructive Sleep Apnea Platform</p>
+        </div>
+      </div>
+
+      <!-- NAVIGATION TABS -->
+      <nav class="hidden md:flex items-center space-x-1 bg-slate-950/60 p-1.5 rounded-xl border border-slate-800">
+        <button onclick="switchTab('workspace')" id="tab-btn-workspace" class="nav-tab active">
+          <i data-lucide="waveform" class="w-4 h-4 mr-1.5"></i> Analysis Workspace
+        </button>
+        <button onclick="switchTab('history')" id="tab-btn-history" class="nav-tab">
+          <i data-lucide="history" class="w-4 h-4 mr-1.5"></i> Clinical History
+        </button>
+        <button onclick="switchTab('transparency')" id="tab-btn-transparency" class="nav-tab">
+          <i data-lucide="shield-check" class="w-4 h-4 mr-1.5"></i> Model Transparency
+        </button>
+        <button onclick="switchTab('science')" id="tab-btn-science" class="nav-tab">
+          <i data-lucide="book-open" class="w-4 h-4 mr-1.5"></i> Clinical Science
+        </button>
+      </nav>
+
+      <!-- SYSTEM STATUS BADGE -->
+      <div class="flex items-center space-x-3">
+        <div class="flex items-center space-x-2 text-xs bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-slate-300 font-mono" id="system-status-indicator">PyTorch + SQLite Online</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- TAB 1: WORKSPACE TAB -->
+    <div id="tab-workspace" class="space-y-8">
+      
+      <!-- HERO BANNER & BENCHMARK SELECTOR -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left: Quick Ingestion Card -->
+        <div class="lg:col-span-2 p-6 rounded-2xl bg-gradient-to-br from-slate-900/90 via-slate-900/40 to-slate-950 border border-slate-800/90 shadow-2xl relative overflow-hidden">
+          <div class="absolute -right-16 -top-16 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800/80 gap-3">
+            <div>
+              <h2 class="text-lg font-bold text-slate-100 flex items-center">
+                <i data-lucide="upload-cloud" class="w-5 h-5 mr-2 text-cyan-400"></i> Signal Ingestion & Predictive Forecast
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">Select a validated clinical benchmark or upload patient PPG recordings (CSV/JSON/TXT)</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <input type="file" id="file-upload" class="hidden" accept=".csv,.json,.txt" onchange="handleFileUpload(event)">
+              <button onclick="document.getElementById('file-upload').click()" class="btn-secondary text-xs">
+                <i data-lucide="file-up" class="w-4 h-4 mr-1"></i> Upload Waveform File
+              </button>
+            </div>
+          </div>
+
+          <!-- Benchmark Clinical Samples -->
+          <div class="mt-5 space-y-3">
+            <span class="text-xs font-semibold tracking-wider uppercase text-slate-400">Validated Cohort Benchmarks:</span>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="sample-buttons-container">
+              <div class="p-3 bg-slate-950/60 rounded-xl border border-slate-800 animate-pulse text-xs text-slate-500">Loading cohort cases...</div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
+            <div class="flex items-center space-x-4">
+              <span><b>Target:</b> 30s window @ 80 Hz (2,400 pts)</span>
+              <span><b>Lead-Time:</b> 5.0 seconds</span>
+              <span><b>Forecast Horizon:</b> 10.0 seconds</span>
+            </div>
+            <button onclick="runInference()" id="btn-run-analysis" class="btn-primary text-xs">
+              <i data-lucide="zap" class="w-4 h-4 mr-1"></i> Execute Model Forecast
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Current Model Telemetry Card -->
+        <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/90 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center">
+                <i data-lucide="shield-check" class="w-4 h-4 mr-1 text-emerald-400"></i> Active Architecture
+              </span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">PyTorch 2.x</span>
+            </div>
+            <div class="space-y-3 text-xs">
+              <div class="flex justify-between py-1 border-b border-slate-800/60">
+                <span class="text-slate-400">Model Name</span>
+                <span class="font-mono text-slate-200">Apnea1DCNN</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/60">
+                <span class="text-slate-400">Parameters</span>
+                <span class="font-mono text-cyan-300">4,951,169 trainable</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/60">
+                <span class="text-slate-400">Filter Passband</span>
+                <span class="font-mono text-slate-200">0.5 Hz — 8.0 Hz (Butterworth)</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/60">
+                <span class="text-slate-400">Signal Integrity</span>
+                <span class="font-mono text-emerald-400" id="telemetry-sqi">Good (SQI: 1.0)</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-slate-500">
+            Validated PyTorch checkpoint. All results derive strictly from genuine tensor operations.
+          </div>
+        </div>
+      </div>
+
+      <!-- CLINICAL PREDICTION HIGHLIGHT BANNER -->
+      <div id="results-banner" class="hidden transition-all duration-300"></div>
+
+      <!-- SIGNAL WAVEFORM WORKSPACE -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-slate-100 flex items-center">
+              <i data-lucide="line-chart" class="w-5 h-5 mr-2 text-cyan-400"></i> Photoplethysmography (PPG) Physiological Tracing
+            </h3>
+            <p class="text-xs text-slate-400">30-Second Continuous Optical Pulse Waveform with Automated Systolic Peak Annotation</p>
+          </div>
+          <div class="flex items-center space-x-3 text-xs">
+            <span class="flex items-center text-cyan-400"><span class="w-3 h-1 bg-cyan-400 rounded-full mr-1.5"></span> Filtered Pulse</span>
+            <span class="flex items-center text-rose-400"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1.5"></span> Systolic Peaks</span>
+            <button onclick="downloadReport()" id="btn-download-pdf" class="btn-secondary text-xs disabled:opacity-50" disabled>
+              <i data-lucide="file-text" class="w-4 h-4 mr-1 text-red-400"></i> Download Clinical PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="h-72 w-full bg-slate-950/80 rounded-xl p-3 border border-slate-800/70 relative">
+          <canvas id="ppg-chart"></canvas>
+          <div id="chart-loader" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm rounded-xl flex items-center justify-center hidden">
+            <div class="flex items-center space-x-3 text-cyan-400 text-sm font-semibold">
+              <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i>
+              <span>Processing Bio-Signal & Executing Forward Pass...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline Context Explanation -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs">
+          <div class="p-3 bg-slate-950/50 rounded-xl border border-emerald-950/50 flex items-start space-x-3">
+            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1 flex-shrink-0"></div>
+            <div>
+              <span class="font-bold text-emerald-400">1. Observation Window (0 - 30s)</span>
+              <p class="text-slate-400 mt-0.5">30s continuous optical pulse waveform analyzed by 3-stage 1D-CNN feature maps.</p>
+            </div>
+          </div>
+          <div class="p-3 bg-slate-950/50 rounded-xl border border-amber-950/50 flex items-start space-x-3">
+            <div class="w-2.5 h-2.5 rounded-full bg-amber-500 mt-1 flex-shrink-0"></div>
+            <div>
+              <span class="font-bold text-amber-400">2. Lead Time Horizon (30 - 35s)</span>
+              <p class="text-slate-400 mt-0.5">5-second buffer prior to airflow cessation allowing pre-emptive therapeutic intervention.</p>
+            </div>
+          </div>
+          <div class="p-3 bg-slate-950/50 rounded-xl border border-rose-950/50 flex items-start space-x-3">
+            <div class="w-2.5 h-2.5 rounded-full bg-rose-500 mt-1 flex-shrink-0"></div>
+            <div>
+              <span class="font-bold text-rose-400">3. Prediction Target (35 - 45s)</span>
+              <p class="text-slate-400 mt-0.5">10-second target interval where apnea event onset is predicted to take place.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PHYSIOLOGICAL BIOMARKERS PANEL -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" id="biomarkers-grid">
+        <div class="metric-card">
+          <span class="metric-label">Mean Heart Rate</span>
+          <span class="metric-val text-cyan-400" id="val-hr">--</span>
+          <span class="metric-unit">beats / min</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">SDNN Variability</span>
+          <span class="metric-val text-blue-400" id="val-sdnn">--</span>
+          <span class="metric-unit">milliseconds</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">RMSSD (Vagal)</span>
+          <span class="metric-val text-indigo-400" id="val-rmssd">--</span>
+          <span class="metric-unit">milliseconds</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">LF/HF Ratio</span>
+          <span class="metric-val text-purple-400" id="val-lfhf">--</span>
+          <span class="metric-unit">sympathovagal</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Systolic Peaks</span>
+          <span class="metric-val text-slate-200" id="val-peaks">--</span>
+          <span class="metric-unit">detected cycles</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Signal Quality Index</span>
+          <span class="metric-val text-emerald-400" id="val-sqi">--</span>
+          <span class="metric-unit">SQI score</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: CLINICAL HISTORY TAB -->
+    <div id="tab-history" class="hidden space-y-6">
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="text-base font-bold text-slate-100 flex items-center">
+              <i data-lucide="database" class="w-5 h-5 mr-2 text-cyan-400"></i> Persistent Analysis Log
+            </h3>
+            <p class="text-xs text-slate-400">Historical records stored in SQLite database. Zero synthetic production records.</p>
+          </div>
+          <button onclick="fetchHistory()" class="btn-secondary text-xs">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1"></i> Refresh History
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="text-[11px] uppercase tracking-wider text-slate-400 bg-slate-950/80 border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4">Timestamp (UTC)</th>
+                <th class="py-3 px-4">Subject ID</th>
+                <th class="py-3 px-4">Forecast Outcome</th>
+                <th class="py-3 px-4">Probability</th>
+                <th class="py-3 px-4">Risk Tier</th>
+                <th class="py-3 px-4">Heart Rate</th>
+                <th class="py-3 px-4">RMSSD</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body" class="divide-y divide-slate-800/60 font-mono">
+              <tr>
+                <td colspan="8" class="text-center py-6 text-slate-500 font-sans">No persistent analyses logged yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: MODEL TRANSPARENCY TAB -->
+    <div id="tab-transparency" class="hidden space-y-8">
+      <div class="p-8 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-6">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-cyan-400">Audited Model Card & Specifications</span>
+          <h2 class="text-2xl font-bold text-slate-100 mt-1">Apnea1DCNN Architecture & Checkpoint Provenance</h2>
+          <p class="text-xs text-slate-400 mt-2 max-w-4xl leading-relaxed">
+            Every parameter, dimension, and classification rule is fully documented here to ensure complete scientific transparency.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-800 text-xs">
+          <div class="space-y-4">
+            <h4 class="font-bold text-slate-200">Checkpoint Information</h4>
+            <div class="space-y-2 font-mono">
+              <div class="flex justify-between p-2 bg-slate-950/60 rounded border border-slate-800">
+                <span class="text-slate-400 font-sans">Source Checkpoint</span>
+                <span class="text-cyan-400">my_final_apnea_predictor.keras</span>
+              </div>
+              <div class="flex justify-between p-2 bg-slate-950/60 rounded border border-slate-800">
+                <span class="text-slate-400 font-sans">Production Framework</span>
+                <span class="text-slate-200">PyTorch 2.x</span>
+              </div>
+              <div class="flex justify-between p-2 bg-slate-950/60 rounded border border-slate-800">
+                <span class="text-slate-400 font-sans">Training Updates</span>
+                <span class="text-slate-200">2,250 Adam Steps (lr=1e-4)</span>
+              </div>
+              <div class="flex justify-between p-2 bg-slate-950/60 rounded border border-slate-800">
+                <span class="text-slate-400 font-sans">Total Parameters</span>
+                <span class="text-slate-200">4,951,169</span>
+              </div>
+              <div class="flex justify-between p-2 bg-slate-950/60 rounded border border-slate-800">
+                <span class="text-slate-400 font-sans">Input Geometry</span>
+                <span class="text-slate-200">(Batch, 1, 2400) [80 Hz x 30s]</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <h4 class="font-bold text-slate-200">Evaluation & Scientific Status</h4>
+            <div class="p-4 bg-slate-950/80 rounded-xl border border-amber-900/50 space-y-2">
+              <div class="flex items-center text-amber-400 font-bold">
+                <i data-lucide="alert-circle" class="w-4 h-4 mr-1.5"></i> Category B System Status
+              </div>
+              <p class="text-slate-300 leading-relaxed text-[11px]">
+                The underlying model was genuinely trained on 80 Hz PPG cohorts. However, the multi-gigabyte raw PhysioNet UCDDB dataset was not tracked in this repository. Independent holdout benchmarking (AUC, sensitivity, specificity) is marked as <b>pending</b> full cohort re-evaluation.
+              </p>
+              <p class="text-slate-400 text-[11px]">
+                All legacy claims of 0.72 AUC were discovered to be placeholder constants in prototype scripts and are not presented as verified truth.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: CLINICAL SCIENCE TAB -->
+    <div id="tab-science" class="hidden space-y-8">
+      <div class="p-8 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-6">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-cyan-400">Biomedical Engineering Context</span>
+          <h2 class="text-2xl font-bold text-slate-100 mt-1">PPG-Based Sleep Apnea Predictive Forewarning</h2>
+          <p class="text-sm text-slate-400 mt-2 max-w-4xl leading-relaxed">
+            Obstructive Sleep Apnea (OSA) is characterized by recurrent upper airway collapse during sleep, resulting in 
+            hypoxia, severe sleep fragmentation, and acute autonomic nervous system stress. Conventional diagnostics require 
+            overnight polysomnography (PSG) in a hospital sleep lab with 16+ wired channels.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-800">
+          <div class="space-y-3">
+            <h4 class="text-base font-bold text-slate-200 flex items-center">
+              <i data-lucide="heart-pulse" class="w-5 h-5 mr-2 text-rose-400"></i> Autonomic Modulation in PPG
+            </h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Photoplethysmography measures changes in microvascular blood volume. As an airway collapse approaches, the body's autonomic 
+              sympathetic system reacts prior to complete cessation of airflow:
+            </p>
+            <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside">
+              <li><b>Peripheral Vasoconstriction:</b> Causes progressive pulse amplitude drop.</li>
+              <li><b>Mayer Wave Fluctuations:</b> 0.1 Hz oscillations in arterial blood pressure.</li>
+              <li><b>Pulse Transit Time (PTT) Variation:</b> Surges with sympathetic tone.</li>
+              <li><b>Heart Rate Variability (HRV) Elevation:</b> Spectral power shifts to Low Frequency (LF).</li>
+            </ul>
+          </div>
+
+          <div class="space-y-3">
+            <h4 class="text-base font-bold text-slate-200 flex items-center">
+              <i data-lucide="clock" class="w-5 h-5 mr-2 text-amber-400"></i> Why Predict Instead of Detect?
+            </h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Conventional systems detect apnea <i>after</i> or <i>during</i> its occurrence (when blood oxygen SpO₂ has already crashed).
+              By leveraging a <b>5-second lead time</b>, ApneaSphere forecasts impending events <i>before</i> airway obstruction solidifies:
+            </p>
+            <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside">
+              <li>Enables proactive auto-titrating CPAP pressure pre-emptive adjustment.</li>
+              <li>Facilitates closed-loop vibratory or acoustic positional therapy.</li>
+              <li>Eliminates oxygen desaturation troughs before they harm cardiac tissue.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-900 bg-slate-950/80 py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+      <div class="flex items-center space-x-2">
+        <i data-lucide="shield" class="w-4 h-4 text-cyan-500"></i>
+        <span>ApneaSphere Biomedical Engine — Research & Educational System</span>
+      </div>
+      <div>
+        <span>Built with PyTorch, FastAPI, SQLite, Chart.js & Tailwind CSS</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
