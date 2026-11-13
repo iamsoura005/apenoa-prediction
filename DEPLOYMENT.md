@@ -25,26 +25,39 @@
 
 ---
 
-## 2. Deploying Backend to Hugging Face Spaces
+## 2. 100% Free Backend Hosting Options
+
+### Option A: Hugging Face Spaces (Gradio SDK — 100% Free Forever)
+> **Why Gradio SDK?** Hugging Face recently required credit card verification for Docker Spaces to prevent crypto-mining abuse. However, **Gradio Spaces are 100% FREE without any payment verification or credit card required** (providing 2 vCPU and 16 GB RAM).
+> 
+> We have configured `app.py` in the root repository to mount the complete FastAPI backend. Hugging Face hosts the Gradio Space for free while exposing all REST API endpoints (`/api/predict`, `/health`, etc.) to your Vercel frontend.
 
 1. **Create Space on Hugging Face:**
    - Space Name: `apneasphere-backend`
-   - License: MIT
-   - SDK: **Docker**
+   - License: `mit`
+   - SDK: Select **Gradio** (Free CPU tier: 2 vCPU, 16 GB RAM)
    - Visibility: Public
 
-2. **Hugging Face Docker Specification:**
-   The repository includes a ready-to-deploy `Dockerfile`:
-   - Listens on port `7860`.
-   - Runs as non-root user `user` (UID 1000).
-   - Serves FastAPI with PyTorch checkpoint `ml/models/apnea_cnn_production.pt`.
-   - Healthcheck configured at `http://localhost:7860/health`.
-
-3. **Deploy using Git:**
+2. **Deploy using Git:**
    ```bash
    git remote add space https://huggingface.co/spaces/<your-hf-username>/apneasphere-backend
    git push space main
    ```
+   All endpoints will be live at `https://<your-hf-username>-apneasphere-backend.hf.space`.
+
+---
+
+### Option B: Render.com (Free Web Service Tier)
+The repository includes a ready-to-deploy `render.yaml` blueprint:
+1. Go to [https://dashboard.render.com](https://dashboard.render.com).
+2. Click **New +** $\to$ **Web Service**.
+3. Connect your GitHub repository: `https://github.com/iamsoura005/apenoa-prediction`.
+4. Render automatically configures:
+   - **Environment:** Python
+   - **Plan:** Free
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `uvicorn backend.app:app --host 0.0.0.0 --port $PORT`
+5. Click **Create Web Service**. Your free backend URL will be `https://apneasphere-backend.onrender.com`.
 
 ---
 
@@ -77,3 +90,4 @@ API documentation available at: `http://localhost:8000/docs`
 ```bash
 python ml/train.py --device cuda --mixed-precision --epochs 15 --batch-size 32
 ```
+
